@@ -31,7 +31,7 @@ Configure the host to:
 2. Serve localized route fallbacks.
 3. Preserve `application/wasm` and `application/octet-stream` content types.
 4. Preserve `Content-Encoding: gzip` for precompressed `.gz` assets.
-5. Apply the security headers in `security-headers.conf` or the equivalent host configuration.
+5. Apply the security headers defined in `vercel.json`.
 6. Allow large static assets required by the WebAssembly tools.
 
 ## Base paths

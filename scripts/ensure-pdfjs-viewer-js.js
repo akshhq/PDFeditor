@@ -88,21 +88,9 @@ function syncWebFallbacks() {
   console.log(`[ensure-pdfjs-js] Synced fallback /web/ resource directories in ${target}`);
 }
 
-function copyDeploymentFiles() {
-  if (target !== 'out') return;
-
-  const htaccessSrc = join(rootDir, '.htaccess');
-  const htaccessDest = join(rootDir, 'out', '.htaccess');
-  if (existsSync(htaccessSrc)) {
-    copyFileSync(htaccessSrc, htaccessDest);
-    console.log('[ensure-pdfjs-js] Copied .htaccess to out/');
-  }
-}
-
 convertMjsToJs(viewerDir);
 patchHtmlFiles(viewerDir);
 convertMjsToJs(workersDir);
 syncWebFallbacks();
-copyDeploymentFiles();
 
 console.log('[ensure-pdfjs-js] Done.');
