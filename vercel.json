@@ -4,8 +4,7 @@
     "app": {
       "root": ".",
       "framework": "nextjs",
-      "buildCommand": "npm run build",
-      "outputDirectory": "out"
+      "buildCommand": "npm run build"
     }
   },
   "rewrites": [

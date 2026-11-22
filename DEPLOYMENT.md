@@ -16,6 +16,9 @@ The deployable output is `out/`.
 The repository includes a Vercel configuration in `vercel.json`:
 
 - `app` is the public Next.js static export and serves every public path.
+- Keep Vercel's framework set to Next.js and leave its Output Directory blank.
+  Setting it to `out` makes the Next.js builder look for a server routes manifest
+  that a static export does not produce.
 - No service bindings are configured because the repository contains no
   service-to-service requests or server-side API.
 
