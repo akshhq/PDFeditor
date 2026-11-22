@@ -56,6 +56,12 @@ export function useBatchProcessing(options: BatchProcessingOptions = {}): UseBat
   const [isProcessing, setIsProcessing] = useState(false);
   const cancelledRef = useRef(false);
   const processingRef = useRef(false); // Track processing state with ref
+  const filesRef = useRef<BatchFile[]>([]);
+
+  const replaceFiles = useCallback((nextFiles: BatchFile[]) => {
+    filesRef.current = nextFiles;
+    setFiles(nextFiles);
+  }, []);
 
   const addFiles = useCallback((newFiles: File[]) => {
     const batchFiles: BatchFile[] = newFiles.map((file) => ({
@@ -64,23 +70,23 @@ export function useBatchProcessing(options: BatchProcessingOptions = {}): UseBat
       status: 'pending',
       progress: 0,
     }));
-    
-    setFiles((prev) => [...prev, ...batchFiles]);
-  }, []);
+
+    replaceFiles([...filesRef.current, ...batchFiles]);
+  }, [replaceFiles]);
 
   const removeFile = useCallback((id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
-  }, []);
+    replaceFiles(filesRef.current.filter((f) => f.id !== id));
+  }, [replaceFiles]);
 
   const clearFiles = useCallback(() => {
-    setFiles([]);
-  }, []);
+    replaceFiles([]);
+  }, [replaceFiles]);
 
   const updateFile = useCallback((id: string, updates: Partial<BatchFile>) => {
-    setFiles((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
-    );
-  }, []);
+    replaceFiles(filesRef.current.map((f) =>
+      f.id === id ? { ...f, ...updates } : f
+    ));
+  }, [replaceFiles]);
 
   const startProcessing = useCallback(
     async (
@@ -93,13 +99,14 @@ export function useBatchProcessing(options: BatchProcessingOptions = {}): UseBat
       setIsProcessing(true);
       cancelledRef.current = false;
 
-      // Capture current files snapshot
-      const currentFiles = await new Promise<BatchFile[]>((resolve) => {
-        setFiles((f) => {
-          resolve(f);
-          return f;
-        });
-      });
+      // Capture the synchronous file snapshot. React state updates alone are
+      // asynchronous and can miss newly selected files on the first click.
+      const currentFiles = filesRef.current.map((file) =>
+        file.status === 'error'
+          ? { ...file, status: 'pending' as const, progress: 0, error: undefined }
+          : file
+      );
+      replaceFiles(currentFiles);
 
       const pendingFiles = currentFiles.filter((f) => f.status === 'pending');
       const queue = [...pendingFiles];
@@ -177,7 +184,7 @@ export function useBatchProcessing(options: BatchProcessingOptions = {}): UseBat
         return finalFiles;
       });
     },
-    [maxConcurrent, updateFile, onFileComplete, onAllComplete, onError]
+    [maxConcurrent, replaceFiles, updateFile, onFileComplete, onAllComplete, onError]
   );
 
   const cancelProcessing = useCallback(() => {

@@ -55,7 +55,7 @@ export interface CompressPDFOptions {
  * Default compress options
  */
 const DEFAULT_COMPRESS_OPTIONS: CompressPDFOptions = {
-  algorithm: 'condense', // Use condense by default to preserve image quality
+  algorithm: 'standard',
   quality: 'medium',
   removeMetadata: false,
   optimizeImages: true,

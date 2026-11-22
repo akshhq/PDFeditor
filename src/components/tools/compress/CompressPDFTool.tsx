@@ -21,7 +21,7 @@ export function CompressPDFTool({ className = '' }: CompressPDFToolProps) {
   const tTools = useTranslations('tools');
 
   // Options
-  const [algorithm, setAlgorithm] = useState<CompressionAlgorithm>('condense');
+  const [algorithm, setAlgorithm] = useState<CompressionAlgorithm>('standard');
   const [quality, setQuality] = useState<CompressionQuality>('medium');
   const [removeMetadata, setRemoveMetadata] = useState(false);
   const [optimizeImages, setOptimizeImages] = useState(true);
@@ -256,6 +256,19 @@ export function CompressPDFTool({ className = '' }: CompressPDFToolProps) {
       {error && (
         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400">
           <p className="text-sm font-semibold">{error}</p>
+        </div>
+      )}
+
+      {errorCount > 0 && (
+        <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400">
+          <p className="text-sm font-semibold">
+            {errorCount} {errorCount === 1 ? 'file could not' : 'files could not'} be compressed.
+          </p>
+          {files.filter((file) => file.status === 'error').map((file) => (
+            <p key={file.id} className="mt-1 text-xs">
+              {file.file.name}: {file.error}
+            </p>
+          ))}
         </div>
       )}
 
