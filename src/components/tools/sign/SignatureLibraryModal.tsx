@@ -7,7 +7,7 @@ import {
   getSavedSignatures,
   saveSignature,
   deleteSignature,
-  PDFCraftSignature,
+  PDFeditzSignature,
   dataUrlToBlob,
 } from '@/lib/pdf/signature-storage';
 import { loadSignatureImageFile } from '@/lib/pdf/signature-image';
@@ -26,7 +26,7 @@ export function SignatureLibraryModal({
   viewerWindow,
   onOpenExtractor,
 }: SignatureLibraryModalProps) {
-  const [signatures, setSignatures] = useState<PDFCraftSignature[]>([]);
+  const [signatures, setSignatures] = useState<PDFeditzSignature[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
 
@@ -77,7 +77,7 @@ export function SignatureLibraryModal({
     loadList();
   };
 
-  const handleApply = async (sig: PDFCraftSignature) => {
+  const handleApply = async (sig: PDFeditzSignature) => {
     try {
       if (viewerWindow && (viewerWindow as any).pdfcraftImportSignature) {
         const blob = dataUrlToBlob(sig.dataUrl);
@@ -89,7 +89,7 @@ export function SignatureLibraryModal({
     }
   };
 
-  const handleDownload = async (sig: PDFCraftSignature) => {
+  const handleDownload = async (sig: PDFeditzSignature) => {
     try {
       const blob = dataUrlToBlob(sig.dataUrl);
       await saveBlobFile(blob, `${sig.name}.png`);
@@ -98,7 +98,7 @@ export function SignatureLibraryModal({
     }
   };
 
-  const handleCopy = async (sig: PDFCraftSignature) => {
+  const handleCopy = async (sig: PDFeditzSignature) => {
     try {
       if (navigator.clipboard && window.ClipboardItem) {
         const blob = dataUrlToBlob(sig.dataUrl);

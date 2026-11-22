@@ -81,7 +81,7 @@ export const getToolDefaultOptions = (id: string, isZh: boolean = false): Record
     case 'pdf-two-column-reflower':
       return { middleGapRatio: 0.5, horizontalReading: false };
     case 'pdf-spine-bookbinder':
-      return { pageCount: 100, paperGsm: 80, bookTitle: 'PDFCraft Book' };
+      return { pageCount: 100, paperGsm: 80, bookTitle: 'PDFeditz Book' };
     case 'pdf-page-resizer-uniform':
       return { targetSize: 'A4', scaleMode: 'fit' };
     case 'pdf-scratchpad-canvas':
@@ -91,7 +91,7 @@ export const getToolDefaultOptions = (id: string, isZh: boolean = false): Record
     case 'bookmark':
       return { title: '', pageNumber: 1, level: 1 };
     case 'edit-metadata':
-      return { title: '', author: '', subject: '', keywords: '', creator: 'PDFCraft' };
+      return { title: '', author: '', subject: '', keywords: '', creator: 'PDFeditz' };
     case 'text-color':
       return { color: '#0000ff', mode: 'dark', threshold: 128 };
     case 'background-color':

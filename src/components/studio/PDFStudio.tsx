@@ -816,7 +816,7 @@ export const PDFStudio: React.FC<PDFStudioProps> = ({
               <Sparkles className="h-4 w-4 text-white" />
             </div>
             <span className="font-bold text-sm tracking-tight hidden sm:inline text-[hsl(var(--color-foreground))]">
-              PDFCraft <span className="text-[hsl(var(--color-primary))] font-medium">Studio</span>
+              PDFeditz <span className="text-[hsl(var(--color-primary))] font-medium">Studio</span>
             </span>
           </Link>
 

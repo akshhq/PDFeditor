@@ -337,7 +337,7 @@ export function generateMarkdownOutput(
 ): string {
   const sections: string[] = [
     `# ${docTitle.replace(/\.[^.]+$/, '')}`,
-    `> *Extracted via PDFCraft OCR on ${new Date().toLocaleDateString()}*`,
+    `> *Extracted via PDFeditz OCR on ${new Date().toLocaleDateString()}*`,
     '',
   ];
 
@@ -373,7 +373,7 @@ export function generateJsonOutput(
       metadata: {
         ...meta,
         generatedAt: new Date().toISOString(),
-        engine: 'PDFCraft OCR Engine v2',
+        engine: 'PDFeditz OCR Engine v2',
       },
       pages: pagesData.map(p => ({
         pageNumber: p.pageNum,

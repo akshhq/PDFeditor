@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Mail, MessageSquare, Github, Twitter, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { Mail, MessageSquare, Github, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { type Locale } from '@/lib/i18n/config';
+import { siteConfig } from '@/config/site';
 
 interface ContactPageClientProps {
   locale: Locale;
@@ -33,21 +34,14 @@ export default function ContactPageClient({ locale }: ContactPageClientProps) {
       title: t('methods.email.title'),
       description: t('methods.email.description'),
       action: t('methods.email.action'),
-      href: 'mailto:contact@pdfcraft.gitu.net',
+      href: 'mailto:akshhq@users.noreply.github.com',
     },
     {
       icon: Github,
       title: t('methods.github.title'),
       description: t('methods.github.description'),
       action: t('methods.github.action'),
-      href: 'https://github.com/PDFCraftTool/pdfcraft',
-    },
-    {
-      icon: Twitter,
-      title: t('methods.twitter.title'),
-      description: t('methods.twitter.description'),
-      action: t('methods.twitter.action'),
-      href: 'https://x.com/PDFCraftTool',
+      href: siteConfig.links.github,
     },
   ];
 
@@ -56,16 +50,15 @@ export default function ContactPageClient({ locale }: ContactPageClientProps) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setFormStatus('submitting');
-
-    // Simulate form submission (in a real app, this would send to an API)
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // For demo purposes, always succeed
-    setFormStatus('success');
-    setFormData({ name: '', email: '', subject: '', message: '' });
+    const body = [
+      `Name: ${formData.name}`,
+      `Email: ${formData.email}`,
+      '',
+      formData.message,
+    ].join('\n');
+    window.location.href = `mailto:akshhq@users.noreply.github.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(body)}`;
   };
 
   return (

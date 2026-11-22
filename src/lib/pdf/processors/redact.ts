@@ -686,7 +686,7 @@ export async function redactPDF(
       newPdfDoc.setSubject('');
       newPdfDoc.setKeywords([]);
       newPdfDoc.setCreator('');
-      newPdfDoc.setProducer('PDFCraft');
+      newPdfDoc.setProducer('PDFeditz');
 
       // Purge XMP Metadata stream from catalog
       try {
