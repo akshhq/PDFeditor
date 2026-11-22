@@ -14,6 +14,7 @@ import type {
 import { PDFErrorCode } from '@/types/pdf';
 import { BasePDFProcessor } from '../processor';
 import { loadPdfjs, loadPdfLib } from '../loader';
+import { TesseractOCREngine } from '@/lib/engines/ocr';
 
 /**
  * Supported OCR languages (single source of truth for every OCR entry point:
@@ -472,7 +473,7 @@ export async function detectFileType(file: File | Blob): Promise<'pdf' | 'image'
  * Performs OCR on PDF pages or images using Tesseract.js.
  */
 export class OCRProcessor extends BasePDFProcessor {
-  private tesseractWorker: TesseractWorker | null = null;
+  private ocrEngine: TesseractOCREngine | null = null;
 
   /**
    * Process PDF or Image with OCR
@@ -766,34 +767,24 @@ export class OCRProcessor extends BasePDFProcessor {
    * Initialize Tesseract worker with progress reporting
    */
   private async initializeTesseract(languages: OCRLanguage[]): Promise<void> {
-    const Tesseract = await import('tesseract.js');
-    const langString = languages && languages.length > 0 ? languages.join('+') : 'eng';
+    this.ocrEngine = new TesseractOCREngine();
+    await this.ocrEngine.initialize(
+      { languages, parameters: getTesseractParameters(languages) || undefined },
+      (progress, message) => this.updateProgress(
+        15 + Math.round(progress * 0.1),
+        `OCR: ${message || 'initializing'}${progress > 0 ? ` (${progress}%)` : ''}`,
+      ),
+    );
 
-    this.tesseractWorker = await Tesseract.createWorker(langString, 1, {
-      logger: (m: any) => {
-        if (m && m.status) {
-          const percent = typeof m.progress === 'number' ? Math.round(m.progress * 100) : 0;
-          this.updateProgress(
-            15 + Math.round((m.progress || 0) * 10),
-            `OCR: ${m.status}${percent > 0 ? ` (${percent}%)` : ''}`
-          );
-        }
-      },
-    }) as unknown as TesseractWorker;
-
-    const params = getTesseractParameters(languages);
-    if (params && this.tesseractWorker.setParameters) {
-      await this.tesseractWorker.setParameters(params);
-    }
   }
 
   /**
    * Terminate Tesseract worker
    */
   private async terminateTesseract(): Promise<void> {
-    if (this.tesseractWorker) {
-      await this.tesseractWorker.terminate();
-      this.tesseractWorker = null;
+    if (this.ocrEngine) {
+      await this.ocrEngine.dispose();
+      this.ocrEngine = null;
     }
   }
 
@@ -805,7 +796,7 @@ export class OCRProcessor extends BasePDFProcessor {
     pageNum: number,
     options: OCROptions
   ): Promise<{ text: string; words: any[] }> {
-    if (!this.tesseractWorker) {
+    if (!this.ocrEngine) {
       throw new Error('Tesseract worker not initialized');
     }
 
@@ -837,20 +828,18 @@ export class OCRProcessor extends BasePDFProcessor {
       preprocessCanvas(canvas);
     }
 
-    // Perform OCR with explicit blocks/hocr requests to ensure word coordinates are extracted
-    const result = await (this.tesseractWorker as any).recognize(
-      canvas,
-      {},
-      { text: true, blocks: true, hocr: true }
-    );
+    const result = await this.ocrEngine.recognize(canvas, {
+      languages: options.languages,
+      pageNumber: pageNum,
+    });
     
     // Coordinate conversion from canvas space to PDF coordinate space (y-flipped)
     const pdfViewport = page.getViewport({ scale: 1.0 });
     const pageHeight = pdfViewport.height;
 
     const scale = options.scale;
-    const toPdfRect = (bbox: any) => {
-      const { x0, y0, x1, y1 } = bbox || { x0: 0, y0: 0, x1: 0, y1: 0 };
+    const toPdfRect = (bbox: { x0: number; y0: number; x1: number; y1: number }) => {
+      const { x0, y0, x1, y1 } = bbox;
       return {
         x: x0 / scale,
         y: pageHeight - (y1 / scale),
@@ -860,29 +849,42 @@ export class OCRProcessor extends BasePDFProcessor {
     };
 
     const verticalEnabled = options.languages.includes('jpn_vert');
-    const words = collectOcrWords(result.data).map((w: any) => {
-      const rect = toPdfRect(w.bbox);
+    const words = result.words.map((w) => {
+      const rect = toPdfRect({
+        x0: w.bbox[0],
+        y0: w.bbox[1],
+        x1: w.bbox[2],
+        y1: w.bbox[3],
+      });
       const charCount = Array.from((w.text || '').trim()).length;
       // A tall, narrow box with several characters is a vertical (tategaki) run.
       const vertical = verticalEnabled && charCount >= 2 && rect.height > rect.width * 1.2;
 
       const word: OcrWord = {
         text: w.text,
-        confidence: typeof w.confidence === 'number' ? Math.round(w.confidence) : 90,
+        confidence: Math.round(w.confidence * 100),
         ...rect,
         fontSize: Math.max(5, (vertical ? rect.width : rect.height) * 0.85),
       };
 
       if (vertical) {
         word.vertical = true;
-        if (Array.isArray(w.symbols) && w.symbols.length > 0) {
-          word.chars = w.symbols.map((s: any) => ({ text: s.text, ...toPdfRect(s.bbox) }));
+        if (w.chars && w.chars.length > 0) {
+          word.chars = w.chars.map((character) => ({
+            text: character.text,
+            ...toPdfRect({
+              x0: character.bbox[0],
+              y0: character.bbox[1],
+              x1: character.bbox[2],
+              y1: character.bbox[3],
+            }),
+          }));
         }
       }
       return word;
     });
 
-    const rawText = result.data.text || '';
+    const rawText = result.text || '';
     const hasCjk = options.languages.some(l => CJK_LANGUAGES.has(l));
 
     return {

@@ -14,6 +14,8 @@ import type {
 import { PDFErrorCode } from '@/types/pdf';
 import { BasePDFProcessor } from '../processor';
 import { loadPdfjs } from '../loader';
+import type { DocumentIR } from '@/lib/document';
+import { extractPdfDocumentIR } from '@/lib/document';
 
 /**
  * PDF to JSON options
@@ -50,6 +52,8 @@ const DEFAULT_OPTIONS: PDFToJSONOptions = {
  */
 export interface PDFJSONOutput {
   filename: string;
+  schemaVersion: '1.0';
+  document: DocumentIR;
   metadata?: {
     title?: string;
     author?: string;
@@ -143,10 +147,13 @@ export class PDFToJSONProcessor extends BasePDFProcessor {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
       const totalPages = pdf.numPages;
+      const document = await extractPdfDocumentIR(pdf, file.name, jsonOptions.pages);
 
       // Initialize output structure
       const output: PDFJSONOutput = {
         filename: file.name,
+        schemaVersion: '1.0',
+        document,
         info: {
           pageCount: totalPages,
           isEncrypted: false,
