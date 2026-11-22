@@ -6,10 +6,6 @@
       "framework": "nextjs",
       "buildCommand": "npm run build",
       "outputDirectory": "out"
-    },
-    "src-tauri": {
-      "root": "src-tauri",
-      "runtime": "rust"
     }
   },
   "rewrites": [
