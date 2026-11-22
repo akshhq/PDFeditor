@@ -11,6 +11,20 @@ npm run build
 
 The deployable output is `out/`.
 
+## Vercel services
+
+The repository includes a services-mode configuration in `vercel.json`:
+
+- `app` is the public Next.js static export and serves every public path.
+- `src-tauri` is an internal Rust service with no public rewrite. It represents the
+  optional desktop package; it is not an HTTP API and is not called by the web app.
+- No service bindings are configured because the repository contains no
+  service-to-service requests or server-side API.
+
+The `src-tauri` service is intentionally internal. If the desktop package should
+not be built by Vercel at all, remove that service and keep Tauri in its separate
+desktop release workflow.
+
 ## Static hosting
 
 Configure the host to:

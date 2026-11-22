@@ -1,13 +1,37 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "nextjs",
+      "buildCommand": "npm run build",
+      "outputDirectory": "out"
+    },
+    "src-tauri": {
+      "root": "src-tauri",
+      "runtime": "rust"
+    }
+  },
   "rewrites": [
     {
       "source": "/pdfjs-annotation-viewer/web/viewer.html",
-      "destination": "/pdfjs-annotation-viewer/web/viewer/"
+      "destination": {
+        "service": "app",
+        "path": "/pdfjs-annotation-viewer/web/viewer/"
+      }
     },
     {
       "source": "/pdfjs-viewer/viewer.html",
-      "destination": "/pdfjs-viewer/viewer/"
+      "destination": {
+        "service": "app",
+        "path": "/pdfjs-viewer/viewer/"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
     }
   ],
   "headers": [
